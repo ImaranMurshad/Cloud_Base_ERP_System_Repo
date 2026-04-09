@@ -1,0 +1,17 @@
+{% extends 'core/dashboard_base.html' %}
+
+{% block content %}
+
+<h2>Update Product</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <input type="text" name="name" value="{{ product.name }}" class="form-control mb-2">
+    <input type="number" name="price" value="{{ product.price }}" class="form-control mb-2">
+    <input type="number" name="quantity" value="{{ product.quantity }}" class="form-control mb-2">
+
+    <button class="btn btn-dark">Update</button>
+</form>
+
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'core/dashboard_base.html' %}
+
+{% block content %}
+
+<h2>Update Customer</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <input type="text" name="name" value="{{ customer.name }}" class="form-control mb-2">
+    <input type="email" name="email" value="{{ customer.email }}" class="form-control mb-2">
+    <input type="text" name="phone" value="{{ customer.phone }}" class="form-control mb-2">
+    <textarea name="address" class="form-control mb-2">{{ customer.address }}</textarea>
+
+    <button class="btn btn-dark">Update</button>
+</form>
+
+{% endblock %}

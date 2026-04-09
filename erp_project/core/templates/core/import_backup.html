@@ -1,0 +1,15 @@
+{% extends 'core/dashboard_base.html' %}
+
+{% block content %}
+
+<h3>Import Backup</h3>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <input type="file" name="file" class="form-control mb-3" required>
+
+    <button class="btn btn-dark">Upload & Restore</button>
+</form>
+
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends 'core/dashboard_base.html' %}
+
+{% block content %}
+
+<style>
+@media print {
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    #invoice-area, #invoice-area * {
+        visibility: visible;
+    }
+
+    #invoice-area {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        margin: 0;
+        padding: 10px;
+    }
+
+    .card {
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    button {
+        display: none !important;
+    }
+
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+}
+</style>
+
+
+<div id="invoice-area" style="max-width: 800px; margin:auto;">
+
+    <div class="card p-3">
+
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between">
+            <div>
+                <h4 class="mb-1">Cloud ERP Pvt Ltd</h4>
+                <small>Business Address, City</small><br>
+                <small>Email: support@clouderp.com</small>
+            </div>
+
+            <div class="text-end">
+                <h5 class="mb-1">INVOICE</h5>
+                <small><strong>#{{ invoice.id }}</strong></small><br>
+                <small>Date: {{ invoice.created_at }}</small>
+            </div>
+        </div>
+
+        <hr class="my-2">
+
+        <!-- CUSTOMER -->
+        <div>
+            <strong>Bill To:</strong><br>
+            {{ invoice.customer.name }}<br>
+            {{ invoice.customer.email }}<br>
+            {{ invoice.customer.phone }}
+        </div>
+
+        <hr class="my-2">
+
+        <!-- TABLE -->
+        <table class="table table-bordered table-sm mt-2">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Qty</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ item.product.name }}</td>
+                    <td>€ {{ item.price }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>€ {{ item.subtotal|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- TOTAL -->
+        <div class="text-end mt-2">
+            <h5>Total: € {{ invoice.total_amount }}</h5>
+        </div>
+
+        <hr class="my-2">
+
+        <!-- FOOTER -->
+        <div class="text-center">
+            <small>Thank you for your business!</small>
+        </div>
+
+        <!-- PRINT BUTTON -->
+        <div class="text-end mt-2">
+            <button onclick="window.print()" class="btn btn-dark btn-sm">
+                Print / Save PDF
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

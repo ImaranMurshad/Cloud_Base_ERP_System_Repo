@@ -1,0 +1,30 @@
+{% extends 'core/dashboard_base.html' %}
+
+{% block content %}
+
+<h2>Customer Master</h2>
+
+<a href="/customers/add/" class="btn btn-dark mb-3">+ Add Customer</a>
+
+<table class="table table-bordered">
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for c in customers %}
+    <tr>
+        <td>{{ c.name }}</td>
+        <td>{{ c.email }}</td>
+        <td>{{ c.phone }}</td>
+        <td>
+            <a href="/customers/update/{{ c.id }}/" class="btn btn-sm btn-warning">Edit</a>
+            <a href="/customers/delete/{{ c.id }}/" class="btn btn-sm btn-danger">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

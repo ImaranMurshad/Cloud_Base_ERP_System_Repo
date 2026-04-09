@@ -1,0 +1,32 @@
+{% extends 'core/dashboard_base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="card p-4 shadow">
+
+        <h3 class="mb-3">Export Backup</h3>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <label>Select Backup Type</label>
+
+            <select name="backup_type" class="form-control mb-3" required>
+                <option value="">-- Select --</option>
+                <option value="customer">Customer Data Backup</option>
+                <option value="product">Item Data Backup</option>
+                <option value="invoice">Invoice Data Backup</option>
+                <option value="full">Full Backup</option>
+            </select>
+
+            <button class="btn btn-success">
+                ⬇ Download Backup
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'core/dashboard_base.html' %}
+
+{% block content %}
+
+<h2>Item Master</h2>
+
+<a href="/products/add/" class="btn btn-dark mb-3">+ Add Product</a>
+
+<table class="table table-bordered">
+    <tr>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for p in products %}
+    <tr>
+        <td>{{ p.name }}</td>
+        <td>{{ p.price }}</td>
+        <td>{{ p.quantity }}</td>
+        <td>
+            <a href="/products/update/{{ p.id }}/" class="btn btn-sm btn-warning">Edit</a>
+            <a href="/products/delete/{{ p.id }}/" class="btn btn-sm btn-danger">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

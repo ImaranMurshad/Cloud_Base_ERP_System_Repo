@@ -1,0 +1,19 @@
+{% extends 'core/dashboard_base.html' %}
+
+{% block content %}
+
+<h2>Add Product</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <input type="text" name="name" placeholder="Product Name" class="form-control mb-2">
+    <input type="number" name="price" placeholder="Price" class="form-control mb-2">
+    <input type="number" name="quantity" placeholder="Quantity" class="form-control mb-2">
+
+    <button class="btn btn-dark">Add Product</button>
+</form>
+
+<p class="text-danger">{{ error }}</p>
+
+{% endblock %}

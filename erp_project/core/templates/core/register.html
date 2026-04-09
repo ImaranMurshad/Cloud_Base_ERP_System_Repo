@@ -1,0 +1,40 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+
+        <div class="card shadow p-4">
+            <h3 class="text-center mb-3">Register</h3>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <input type="text" name="full_name" placeholder="Full Name" class="form-control mb-2" required>
+                <input type="email" name="email" placeholder="Email" class="form-control mb-2" required>
+                <input type="text" name="username" placeholder="Username" class="form-control mb-2" required>
+                <input type="password" name="password" placeholder="Password" class="form-control mb-2" required>
+                <input type="password" name="confirm_password" placeholder="Confirm Password" class="form-control mb-2" required>
+
+                <select name="question" class="form-control mb-2" required>
+    <option value="">-- Select Security Question --</option>
+    <option value="What is your pet's name?">What is your pet's name?</option>
+    <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+    <option value="What was your first school?">What was your first school?</option>
+    <option value="What is your favorite food?">What is your favorite food?</option>
+    <option value="What city were you born in?">What city were you born in?</option>
+</select>
+                <input type="text" name="answer" placeholder="Answer" class="form-control mb-2" required>
+
+                <button class="btn btn-dark w-100">Register</button>
+            </form>
+
+            <p class="text-danger mt-2">{{ error }}</p>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

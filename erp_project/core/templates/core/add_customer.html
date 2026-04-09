@@ -1,0 +1,20 @@
+{% extends 'core/dashboard_base.html' %}
+
+{% block content %}
+
+<h2>Add Customer</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <input type="text" name="name" placeholder="Customer Name" class="form-control mb-2">
+    <input type="email" name="email" placeholder="Email" class="form-control mb-2">
+    <input type="text" name="phone" placeholder="Phone" class="form-control mb-2">
+    <textarea name="address" placeholder="Address" class="form-control mb-2"></textarea>
+
+    <button class="btn btn-dark">Add Customer</button>
+</form>
+
+<p class="text-danger">{{ error }}</p>
+
+{% endblock %}

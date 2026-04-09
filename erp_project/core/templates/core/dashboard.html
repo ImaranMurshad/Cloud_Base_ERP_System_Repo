@@ -1,0 +1,32 @@
+{% extends 'core/dashboard_base.html' %}
+
+{% block content %}
+
+<h2>Dashboard Overview</h2>
+
+<div class="row">
+
+    <div class="col-md-4">
+        <div class="card p-3 shadow">
+            <h5>Total Items</h5>
+            <h3>{{ total_products }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3 shadow">
+            <h5>Total Customers</h5>
+            <h3>{{ total_customers }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3 shadow">
+            <h5>Total Invoices</h5>
+            <h3>{{ total_invoices }}</h3>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
