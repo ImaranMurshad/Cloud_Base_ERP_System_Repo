@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-xkfi1eu&39_5v@=wnpmpm8@p0w%p!e^uum@%j81!ju%q+%8438'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['13.53.38.117', 'localhost', '127.0.0.1', 'ec2-13-53-38-117.eu-north-1.compute.amazonaws.com']
 
 
 # Application definition
@@ -74,10 +74,22 @@ WSGI_APPLICATION = 'erp_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+import os
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'erp_db'),
+        'USER': os.environ.get('DB_USER', 'erpuser'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', ''),
+        'PORT': '5432',
     }
 }
 
@@ -124,3 +136,22 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+# AWS S3 CONFIG
+
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+
+# ❗ PUT YOUR REAL BUCKET NAME HERE (EXACT SAME)
+AWS_STORAGE_BUCKET_NAME = 'erp-exports-imran'   # 👈 change this
+
+# ❗ YOUR REGION (from screenshot = Stockholm)
+AWS_S3_REGION_NAME = 'eu-north-1'
+
+# Recommended settings
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_DEFAULT_ACL = None
+AWS_S3_FILE_OVERWRITE = False
+AWS_QUERYSTRING_AUTH = False

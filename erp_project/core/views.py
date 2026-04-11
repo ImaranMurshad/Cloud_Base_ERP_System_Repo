@@ -497,11 +497,18 @@ def import_backup(request):
         return redirect('/dashboard/')
 
     return render(request, 'core/import_backup.html')
+
+
+
+
 import csv
+import boto3
+from datetime import date
+from django.conf import settings
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from .models import Customer, Product, Invoice, InvoiceItem
+from .models import Customer, Product, Invoice
 
 
 @login_required
@@ -516,7 +523,6 @@ def export_backup(request):
             })
 
         response = HttpResponse(content_type='text/csv')
-
         writer = csv.writer(response)
 
         # 🔹 CUSTOMER BACKUP
@@ -549,11 +555,10 @@ def export_backup(request):
             for i in Invoice.objects.filter(user=request.user):
                 writer.writerow([i.id, i.customer.name, i.total_amount, i.created_at])
 
-        # 🔹 FULL BACKUP (BEST 🔥)
+        # 🔹 FULL BACKUP
         elif backup_type == "full":
             response['Content-Disposition'] = 'attachment; filename="full_backup.csv"'
 
-            # ===== CUSTOMERS =====
             writer.writerow(['CUSTOMERS'])
             writer.writerow(['Name', 'Email', 'Phone', 'Address'])
 
@@ -562,7 +567,6 @@ def export_backup(request):
 
             writer.writerow([])
 
-            # ===== PRODUCTS =====
             writer.writerow(['PRODUCTS'])
             writer.writerow(['Name', 'Price', 'Quantity'])
 
@@ -571,20 +575,33 @@ def export_backup(request):
 
             writer.writerow([])
 
-            # ===== INVOICES =====
             writer.writerow(['INVOICES'])
             writer.writerow(['InvoiceID', 'Customer', 'Total', 'Date'])
 
             for i in Invoice.objects.filter(user=request.user):
                 writer.writerow([i.id, i.customer.name, i.total_amount, i.created_at])
 
+        # ✅ 🔥 UPLOAD TO S3 (AFTER CSV IS READY)
+        try:
+            s3 = boto3.client(
+                's3',
+                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                region_name=settings.AWS_S3_REGION_NAME
+            )
+
+            filename = f"backup_{request.user.username}_{date.today()}.csv"
+
+            s3.put_object(
+                Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+                Key=f"backups/{filename}",
+                Body=response.content,
+                ContentType='text/csv'
+            )
+
+        except Exception as e:
+            print("S3 Upload Error:", e)  # debug only
+
         return response
 
     return render(request, 'core/export_backup.html')
-
-
-
-
-
-
-
