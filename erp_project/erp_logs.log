@@ -1,0 +1,56 @@
+INFO 2026-04-11 18:57:10,799 autoreload Watching for file changes with StatReloader
+INFO 2026-04-11 18:57:13,315 basehttp "GET / HTTP/1.1" 200 2218
+INFO 2026-04-11 18:57:15,169 basehttp "GET /login/ HTTP/1.1" 200 2516
+WARNING 2026-04-11 18:57:21,294 cloudwatch_utils [CloudWatch] Setup warning: An error occurred (AccessDeniedException) when calling the CreateLogGroup operation: User: arn:aws:iam::304188066633:user/erp-dev-user is not authorized to perform: logs:CreateLogGroup on resource: arn:aws:logs:eu-north-1:304188066633:log-group:/erp/django:log-stream: because no identity-based policy allows the logs:CreateLogGroup action
+WARNING 2026-04-11 18:57:21,606 cloudwatch_utils [CloudWatch] Setup warning: An error occurred (AccessDeniedException) when calling the CreateLogStream operation: User: arn:aws:iam::304188066633:user/erp-dev-user is not authorized to perform: logs:CreateLogStream on resource: arn:aws:logs:eu-north-1:304188066633:log-group:/erp/django:log-stream:erp-app-events because no identity-based policy allows the logs:CreateLogStream action
+WARNING 2026-04-11 18:57:21,883 cloudwatch_utils [CloudWatch] Failed to send log event: An error occurred (AccessDeniedException) when calling the PutLogEvents operation: User: arn:aws:iam::304188066633:user/erp-dev-user is not authorized to perform: logs:PutLogEvents on resource: arn:aws:logs:eu-north-1:304188066633:log-group:/erp/django:log-stream:erp-app-events because no identity-based policy allows the logs:PutLogEvents action
+INFO 2026-04-11 18:57:21,883 cloudwatch_utils [LOGIN] user=Imran123
+INFO 2026-04-11 18:57:22,071 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2026-04-11 18:57:22,945 rds_utils [RDS] Stats for user='Imran123': products=3, customers=1, invoices=1, revenue=500.0
+INFO 2026-04-11 18:57:22,952 basehttp "GET /dashboard/ HTTP/1.1" 200 3505
+INFO 2026-04-11 18:57:26,090 basehttp "GET /backup/export/ HTTP/1.1" 200 3875
+INFO 2026-04-11 18:57:28,029 basehttp - Broken pipe from ('127.0.0.1', 65060)
+
+INFO 2026-04-11 18:57:28,457 basehttp "GET /invoice/create/ HTTP/1.1" 200 7447
+INFO 2026-04-11 18:57:30,196 basehttp "GET /customers/ HTTP/1.1" 200 3563
+INFO 2026-04-11 18:57:32,399 basehttp "GET /customers/add/ HTTP/1.1" 200 3609
+WARNING 2026-04-11 18:57:55,095 cloudwatch_utils [CloudWatch Metric] Failed to publish 'CustomersAdded': An error occurred (AccessDenied) when calling the PutMetricData operation: User: arn:aws:iam::304188066633:user/erp-dev-user is not authorized to perform: cloudwatch:PutMetricData because no identity-based policy allows the cloudwatch:PutMetricData action
+INFO 2026-04-11 18:57:55,097 basehttp "POST /customers/add/ HTTP/1.1" 302 0
+INFO 2026-04-11 18:57:55,737 basehttp "GET /customers/ HTTP/1.1" 200 3865
+INFO 2026-04-11 18:57:58,296 basehttp "GET /invoice/create/ HTTP/1.1" 200 7497
+INFO 2026-04-11 18:57:59,189 basehttp "GET /customers/ HTTP/1.1" 200 3865
+WARNING 2026-04-11 18:58:00,972 cloudwatch_utils [CloudWatch] Setup warning: An error occurred (AccessDeniedException) when calling the CreateLogGroup operation: User: arn:aws:iam::304188066633:user/erp-dev-user is not authorized to perform: logs:CreateLogGroup on resource: arn:aws:logs:eu-north-1:304188066633:log-group:/erp/django:log-stream: because no identity-based policy allows the logs:CreateLogGroup action
+WARNING 2026-04-11 18:58:01,237 cloudwatch_utils [CloudWatch] Setup warning: An error occurred (AccessDeniedException) when calling the CreateLogStream operation: User: arn:aws:iam::304188066633:user/erp-dev-user is not authorized to perform: logs:CreateLogStream on resource: arn:aws:logs:eu-north-1:304188066633:log-group:/erp/django:log-stream:erp-app-events because no identity-based policy allows the logs:CreateLogStream action
+WARNING 2026-04-11 18:58:01,577 cloudwatch_utils [CloudWatch] Failed to send log event: An error occurred (AccessDeniedException) when calling the PutLogEvents operation: User: arn:aws:iam::304188066633:user/erp-dev-user is not authorized to perform: logs:PutLogEvents on resource: arn:aws:logs:eu-north-1:304188066633:log-group:/erp/django:log-stream:erp-app-events because no identity-based policy allows the logs:PutLogEvents action
+INFO 2026-04-11 18:58:01,577 cloudwatch_utils [LOGOUT] user=Imran123
+INFO 2026-04-11 18:58:01,698 basehttp "GET /logout/ HTTP/1.1" 302 0
+INFO 2026-04-11 18:58:01,703 basehttp "GET / HTTP/1.1" 200 2218
+INFO 2026-04-11 18:59:38,989 basehttp "GET /backup/export/ HTTP/1.1" 302 0
+WARNING 2026-04-11 18:59:38,998 log Not Found: /accounts/login/
+WARNING 2026-04-11 18:59:38,999 basehttp "GET /accounts/login/?next=/backup/export/ HTTP/1.1" 404 179
+INFO 2026-04-11 18:59:41,511 basehttp "GET /customers/ HTTP/1.1" 302 0
+WARNING 2026-04-11 18:59:41,515 log Not Found: /accounts/login/
+WARNING 2026-04-11 18:59:41,516 basehttp "GET /accounts/login/?next=/customers/ HTTP/1.1" 404 179
+INFO 2026-04-11 18:59:43,259 basehttp "GET /invoice/create/ HTTP/1.1" 302 0
+WARNING 2026-04-11 18:59:43,263 log Not Found: /accounts/login/
+WARNING 2026-04-11 18:59:43,263 basehttp "GET /accounts/login/?next=/invoice/create/ HTTP/1.1" 404 179
+WARNING 2026-04-11 18:59:45,038 log Not Found: /accounts/login/
+WARNING 2026-04-11 18:59:45,038 basehttp "GET /accounts/login/?next=/invoice/create/ HTTP/1.1" 404 179
+INFO 2026-04-11 18:59:55,283 autoreload Watching for file changes with StatReloader
+INFO 2026-04-11 18:59:57,870 basehttp "GET / HTTP/1.1" 200 2218
+INFO 2026-04-11 18:59:59,885 basehttp "GET /login/ HTTP/1.1" 200 2516
+WARNING 2026-04-11 19:00:07,134 cloudwatch_utils [CloudWatch] Setup warning: An error occurred (AccessDeniedException) when calling the CreateLogGroup operation: User: arn:aws:iam::304188066633:user/erp-dev-user is not authorized to perform: logs:CreateLogGroup on resource: arn:aws:logs:eu-north-1:304188066633:log-group:/erp/django:log-stream: because no identity-based policy allows the logs:CreateLogGroup action
+WARNING 2026-04-11 19:00:07,448 cloudwatch_utils [CloudWatch] Setup warning: An error occurred (AccessDeniedException) when calling the CreateLogStream operation: User: arn:aws:iam::304188066633:user/erp-dev-user is not authorized to perform: logs:CreateLogStream on resource: arn:aws:logs:eu-north-1:304188066633:log-group:/erp/django:log-stream:erp-app-events because no identity-based policy allows the logs:CreateLogStream action
+WARNING 2026-04-11 19:00:07,707 cloudwatch_utils [CloudWatch] Failed to send log event: An error occurred (AccessDeniedException) when calling the PutLogEvents operation: User: arn:aws:iam::304188066633:user/erp-dev-user is not authorized to perform: logs:PutLogEvents on resource: arn:aws:logs:eu-north-1:304188066633:log-group:/erp/django:log-stream:erp-app-events because no identity-based policy allows the logs:PutLogEvents action
+INFO 2026-04-11 19:00:07,708 cloudwatch_utils [LOGIN] user=Imran123
+INFO 2026-04-11 19:00:07,889 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2026-04-11 19:00:08,711 rds_utils [RDS] Stats for user='Imran123': products=3, customers=2, invoices=1, revenue=500.0
+INFO 2026-04-11 19:00:08,718 basehttp "GET /dashboard/ HTTP/1.1" 200 3505
+INFO 2026-04-11 19:00:13,345 basehttp "GET /backup/export/ HTTP/1.1" 200 3875
+INFO 2026-04-11 19:00:17,335 s3_utils [S3] Upload OK → s3://erp-exports-imran/backups/full_Imran123_2026-04-11.csv
+WARNING 2026-04-11 19:00:17,624 cloudwatch_utils [CloudWatch] Setup warning: An error occurred (AccessDeniedException) when calling the CreateLogGroup operation: User: arn:aws:iam::304188066633:user/erp-dev-user is not authorized to perform: logs:CreateLogGroup on resource: arn:aws:logs:eu-north-1:304188066633:log-group:/erp/django:log-stream: because no identity-based policy allows the logs:CreateLogGroup action
+WARNING 2026-04-11 19:00:17,903 cloudwatch_utils [CloudWatch] Setup warning: An error occurred (AccessDeniedException) when calling the CreateLogStream operation: User: arn:aws:iam::304188066633:user/erp-dev-user is not authorized to perform: logs:CreateLogStream on resource: arn:aws:logs:eu-north-1:304188066633:log-group:/erp/django:log-stream:erp-app-events because no identity-based policy allows the logs:CreateLogStream action
+WARNING 2026-04-11 19:00:18,203 cloudwatch_utils [CloudWatch] Failed to send log event: An error occurred (AccessDeniedException) when calling the PutLogEvents operation: User: arn:aws:iam::304188066633:user/erp-dev-user is not authorized to perform: logs:PutLogEvents on resource: arn:aws:logs:eu-north-1:304188066633:log-group:/erp/django:log-stream:erp-app-events because no identity-based policy allows the logs:PutLogEvents action
+INFO 2026-04-11 19:00:18,203 cloudwatch_utils [BACKUP_EXPORTED] user=Imran123 type=full s3_key=backups/full_Imran123_2026-04-11.csv
+WARNING 2026-04-11 19:00:18,522 cloudwatch_utils [CloudWatch Metric] Failed to publish 'BackupsExported': An error occurred (AccessDenied) when calling the PutMetricData operation: User: arn:aws:iam::304188066633:user/erp-dev-user is not authorized to perform: cloudwatch:PutMetricData because no identity-based policy allows the cloudwatch:PutMetricData action
+INFO 2026-04-11 19:00:18,524 basehttp "POST /backup/export/ HTTP/1.1" 200 283
