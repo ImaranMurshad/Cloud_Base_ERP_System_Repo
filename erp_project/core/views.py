@@ -1,58 +1,30 @@
-# ================= IMPORTS =================
-
-# Django core utilities for rendering pages and redirects
 from django.shortcuts import render, redirect
-
-# Django authentication system
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
-
-# Restrict access to logged-in users only
 from django.contrib.auth.decorators import login_required
-
-# HTTP response (used for file downloads like CSV)
-from django.http import HttpResponse
-
-# Database aggregation functions (SUM)
 from django.db.models import Sum
 
-# Used for parsing date filters from UI
-from django.utils.dateparse import parse_date
-
-# Python libraries for CSV handling
-import csv
-from io import TextIOWrapper
-
-
-# ================= CUSTOM LIBRARIES =================
-# These are user-defined reusable modules (VERY IMPORTANT FOR LO3)
-
-# 👉 Handles invoice calculation logic (separation of business logic)
 from utils.invoice_utils import calculate_total
-
-# 👉 Handles report calculations like total revenue
 from utils.report_utils import get_total_revenue
 
-# 👉 Handles form validation (checks empty fields etc.)
-from utils.validation_utils import required_fields
-
-
-# ================= MODELS =================
-# Importing database tables
-from .models import UserProfile, Product, Customer, Invoice, InvoiceItem
-
+from .models import (
+    UserProfile,
+    Product,
+    Customer,
+    Invoice,
+    InvoiceItem
+)
 
 # ================= HOME =================
 
-# Landing page
 def index(request):
     return render(request, 'core/index.html')
 
-# About page
+
 def about(request):
     return render(request, 'core/about.html')
 
-# Contact page
+
 def contact(request):
     return render(request, 'core/contact.html')
 
@@ -61,40 +33,38 @@ def contact(request):
 
 def register(request):
     if request.method == "POST":
+        full_name = request.POST.get('full_name')
+        email = request.POST.get('email')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+        question = request.POST.get('question')
+        answer = request.POST.get('answer')
 
-        # Collect all input data
-        data = [
-            request.POST.get('full_name'),
-            request.POST.get('email'),
-            request.POST.get('username'),
-            request.POST.get('password'),
-            request.POST.get('confirm_password'),
-            request.POST.get('question'),
-            request.POST.get('answer')
-        ]
+        if not all([full_name, email, username, password, confirm_password, question, answer]):
+            return render(request, 'core/register.html', {'error': 'All fields are required'})
 
-        # ✅ Validate using custom library
-        if not required_fields(data):
-            return render(request, 'core/register.html', {'error': 'All fields required'})
-
-        # Password match check
-        if data[3] != data[4]:
+        if password != confirm_password:
             return render(request, 'core/register.html', {'error': 'Passwords do not match'})
 
-        # Check username exists
-        if User.objects.filter(username=data[2]).exists():
-            return render(request, 'core/register.html', {'error': 'Username exists'})
+        if User.objects.filter(username=username).exists():
+            return render(request, 'core/register.html', {'error': 'Username already exists'})
 
-        # Create user
-        user = User.objects.create_user(username=data[2], password=data[3], email=data[1])
+        if User.objects.filter(email=email).exists():
+            return render(request, 'core/register.html', {'error': 'Email already registered'})
 
-        # Create profile
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            email=email
+        )
+
         UserProfile.objects.create(
             user=user,
-            full_name=data[0],
-            email=data[1],
-            security_question=data[5],
-            security_answer=data[6]
+            full_name=full_name,
+            email=email,
+            security_question=question,
+            security_answer=answer
         )
 
         return redirect('/login/')
@@ -106,13 +76,13 @@ def register(request):
 
 def login_view(request):
     if request.method == "POST":
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
-        # Authenticate user credentials
-        user = authenticate(
-            request,
-            username=request.POST.get('username'),
-            password=request.POST.get('password')
-        )
+        if not username or not password:
+            return render(request, 'core/login.html', {'error': 'Please enter all fields'})
+
+        user = authenticate(request, username=username, password=password)
 
         if user:
             login(request, user)
@@ -124,18 +94,16 @@ def login_view(request):
 
 
 # ================= LOGOUT =================
+from django.contrib.auth import logout
 
 def logout_view(request):
-    logout(request)  # Destroy session
-    return redirect('/')  # Redirect to homepage
-
+    logout(request)
+    return redirect('/')
 
 # ================= FORGOT PASSWORD =================
 
 def forgot_password(request):
     if request.method == "POST":
-
-        # Get user inputs
         username = request.POST.get('username')
         email = request.POST.get('email')
         question = request.POST.get('question')
@@ -146,7 +114,6 @@ def forgot_password(request):
             user = User.objects.get(username=username)
             profile = UserProfile.objects.get(user=user)
 
-            # Step 1: Verify user identity
             if not new_password:
                 if (
                     profile.email == email and
@@ -158,9 +125,9 @@ def forgot_password(request):
                         'success': 'Verified! Enter new password.'
                     })
                 else:
-                    return render(request, 'core/forgot_password.html', {'error': 'Invalid details'})
-
-            # Step 2: Reset password
+                    return render(request, 'core/forgot_password.html', {
+                        'error': 'Invalid details'
+                    })
             else:
                 user.set_password(new_password)
                 user.save()
@@ -168,7 +135,7 @@ def forgot_password(request):
                     'success': 'Password reset successful!'
                 })
 
-        except:
+        except User.DoesNotExist:
             return render(request, 'core/forgot_password.html', {'error': 'User not found'})
 
     return render(request, 'core/forgot_password.html')
@@ -176,21 +143,19 @@ def forgot_password(request):
 
 # ================= DASHBOARD =================
 
+from .models import Product, Customer, Invoice
+from django.contrib.auth.decorators import login_required
+
 @login_required
 def dashboard(request):
-
-    # Fetch user-specific data
-    products = Product.objects.filter(user=request.user)
-    customers = Customer.objects.filter(user=request.user)
-    invoices = Invoice.objects.filter(user=request.user)
+    total_products = Product.objects.filter(user=request.user).count()
+    total_customers = Customer.objects.filter(user=request.user).count()
+    total_invoices = Invoice.objects.filter(user=request.user).count()
 
     return render(request, 'core/dashboard.html', {
-        'total_products': products.count(),
-        'total_customers': customers.count(),
-        'total_invoices': invoices.count(),
-
-        # ✅ Revenue calculated using custom library
-        'total_revenue': get_total_revenue(invoices)
+        'total_products': total_products,
+        'total_customers': total_customers,
+        'total_invoices': total_invoices
     })
 
 
@@ -198,28 +163,27 @@ def dashboard(request):
 
 @login_required
 def product_list(request):
-    return render(request, 'core/product_list.html', {
-        'products': Product.objects.filter(user=request.user)
-    })
+    products = Product.objects.filter(user=request.user)
+    return render(request, 'core/product_list.html', {'products': products})
 
 
 @login_required
 def add_product(request):
     if request.method == "POST":
+        name = request.POST.get('name')
+        price = request.POST.get('price')
+        quantity = request.POST.get('quantity')
 
-        # Collect form data
-        data = [
-            request.POST.get('name'),
-            request.POST.get('price'),
-            request.POST.get('quantity')
-        ]
-
-        # ✅ Validate using custom library
-        if not required_fields(data):
+        if not all([name, price, quantity]):
             return render(request, 'core/add_product.html', {'error': 'All fields required'})
 
-        # Save product
-        Product.objects.create(user=request.user, name=data[0], price=data[1], quantity=data[2])
+        Product.objects.create(
+            user=request.user,
+            name=name,
+            price=price,
+            quantity=quantity
+        )
+
         return redirect('/products/')
 
     return render(request, 'core/add_product.html')
@@ -249,31 +213,27 @@ def delete_product(request, id):
 
 @login_required
 def customer_list(request):
-    return render(request, 'core/customer_list.html', {
-        'customers': Customer.objects.filter(user=request.user)
-    })
+    customers = Customer.objects.filter(user=request.user)
+    return render(request, 'core/customer_list.html', {'customers': customers})
 
 
 @login_required
 def add_customer(request):
     if request.method == "POST":
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        address = request.POST.get('address')
 
-        data = [
-            request.POST.get('name'),
-            request.POST.get('email'),
-            request.POST.get('phone')
-        ]
-
-        # ✅ Validation via custom library
-        if not required_fields(data):
+        if not all([name, email, phone]):
             return render(request, 'core/add_customer.html', {'error': 'All fields required'})
 
         Customer.objects.create(
             user=request.user,
-            name=data[0],
-            email=data[1],
-            phone=data[2],
-            address=request.POST.get('address')
+            name=name,
+            email=email,
+            phone=phone,
+            address=address
         )
 
         return redirect('/customers/')
@@ -306,7 +266,6 @@ def delete_customer(request, id):
 
 @login_required
 def create_invoice(request):
-
     products = Product.objects.filter(user=request.user)
     customers = Customer.objects.filter(user=request.user)
 
@@ -314,7 +273,6 @@ def create_invoice(request):
 
         customer_id = request.POST.get('customer')
 
-        # Handle new or existing customer
         if customer_id == "new":
             customer = Customer.objects.create(
                 user=request.user,
@@ -326,20 +284,21 @@ def create_invoice(request):
         else:
             customer = Customer.objects.get(id=customer_id, user=request.user)
 
-        # Create invoice
-        invoice = Invoice.objects.create(user=request.user, customer=customer, total_amount=0)
+        invoice = Invoice.objects.create(
+            user=request.user,
+            customer=customer,
+            total_amount=0
+        )
 
-        items = []
+        total = 0
         product_ids = request.POST.getlist('product')
         quantities = request.POST.getlist('quantity')
 
-        # Loop through products
         for i in range(len(product_ids)):
             product = Product.objects.get(id=product_ids[i])
             qty = int(quantities[i])
-
-            # Prepare for calculation
-            items.append({'price': product.price, 'quantity': qty})
+            subtotal = product.price * qty
+            total += subtotal
 
             InvoiceItem.objects.create(
                 invoice=invoice,
@@ -348,10 +307,10 @@ def create_invoice(request):
                 price=product.price
             )
 
-        # ✅ Calculate total using custom library
-        invoice.total_amount = calculate_total(items)
+        invoice.total_amount = total
         invoice.save()
 
+        # ✅ FIXED REDIRECT
         return redirect(f'/invoice/view/{invoice.id}/')
 
     return render(request, 'core/create_invoice.html', {
@@ -360,12 +319,11 @@ def create_invoice(request):
     })
 
 
-@login_required
 def invoice_view(request, id):
     invoice = Invoice.objects.get(id=id, user=request.user)
     items = InvoiceItem.objects.filter(invoice=invoice)
 
-    # Calculate subtotal per item
+    # ✅ ADD THIS
     for item in items:
         item.subtotal = item.price * item.quantity
 
@@ -375,96 +333,146 @@ def invoice_view(request, id):
     })
 
 
+from django.db.models import Sum
+from django.utils.dateparse import parse_date
+
 @login_required
 def invoice_list(request):
     invoices = Invoice.objects.filter(user=request.user)
 
-    # Apply filters
-    if request.GET.get('start_date'):
-        invoices = invoices.filter(created_at__date__gte=parse_date(request.GET.get('start_date')))
+    # 🔍 FILTERS
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    customer = request.GET.get('customer')
 
-    if request.GET.get('end_date'):
-        invoices = invoices.filter(created_at__date__lte=parse_date(request.GET.get('end_date')))
+    if start_date:
+        invoices = invoices.filter(created_at__date__gte=parse_date(start_date))
 
-    if request.GET.get('customer'):
-        invoices = invoices.filter(customer__name__icontains=request.GET.get('customer'))
+    if end_date:
+        invoices = invoices.filter(created_at__date__lte=parse_date(end_date))
+
+    if customer:
+        invoices = invoices.filter(customer__name__icontains=customer)
 
     invoices = invoices.order_by('-id')
 
+    # 📊 REPORT DATA
+    total_revenue = invoices.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    total_invoices = invoices.count()
+
     return render(request, 'core/invoice_list.html', {
         'invoices': invoices,
-        'total_revenue': get_total_revenue(invoices),  # custom lib
-        'total_invoices': invoices.count()
+        'total_revenue': total_revenue,
+        'total_invoices': total_invoices
     })
 
 
-# ================= EXPORT =================
+# ================= REPORT =================
+
+@login_required
+def billing_report(request):
+    invoices = Invoice.objects.filter(user=request.user)
+
+    total_revenue = invoices.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+
+    return render(request, 'core/billing_report.html', {
+        'total_revenue': total_revenue,
+        'total_invoices': invoices.count(),
+        'invoices': invoices
+    })
+    
+import csv
+from django.http import HttpResponse
 
 @login_required
 def export_invoices(request):
+    invoices = Invoice.objects.filter(user=request.user)
 
-    # Create CSV response
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="invoices.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Customer', 'Total (€)', 'Date'])
+    writer.writerow(['ID', 'Customer', 'Total', 'Date'])
 
-    for i in Invoice.objects.filter(user=request.user):
-        writer.writerow([i.id, i.customer.name, i.total_amount, i.created_at])
+    for inv in invoices:
+        writer.writerow([inv.id, inv.customer.name, inv.total_amount, inv.created_at])
 
     return response
 
 
+import csv
+from django.http import HttpResponse
+
 @login_required
 def export_backup(request):
-
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="backup.csv"'
+    response['Content-Disposition'] = 'attachment; filename="erp_backup.csv"'
 
     writer = csv.writer(response)
 
-    # Export products
+    # ===== PRODUCTS =====
     writer.writerow(['PRODUCTS'])
-    for p in Product.objects.filter(user=request.user):
+    writer.writerow(['Name', 'Price', 'Quantity'])
+
+    products = Product.objects.filter(user=request.user)
+    for p in products:
         writer.writerow([p.name, p.price, p.quantity])
 
-    # Export customers
+    # ===== CUSTOMERS =====
     writer.writerow([])
     writer.writerow(['CUSTOMERS'])
-    for c in Customer.objects.filter(user=request.user):
+    writer.writerow(['Name', 'Email', 'Phone', 'Address'])
+
+    customers = Customer.objects.filter(user=request.user)
+    for c in customers:
         writer.writerow([c.name, c.email, c.phone, c.address])
 
     return response
 
 
-# ================= IMPORT =================
+import csv
+from io import TextIOWrapper
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from .models import Product, Customer
 
 @login_required
 def import_backup(request):
     if request.method == "POST":
-
         file = request.FILES.get('file')
 
-        decoded = TextIOWrapper(file.file, encoding='utf-8')
-        reader = csv.reader(decoded)
+        if not file:
+            return render(request, 'core/import_backup.html', {
+                'error': 'Please upload a file'
+            })
+
+        decoded_file = TextIOWrapper(file.file, encoding='utf-8')
+        reader = csv.reader(decoded_file)
 
         mode = None
 
         for row in reader:
+
             if not row:
                 continue
 
-            # Detect section
-            if "PRODUCTS" in row[0].upper():
-                mode = "product"
-                continue
+            # ✅ FIX HEADER MATCH
+            header = row[0].strip().upper()
 
-            if "CUSTOMERS" in row[0].upper():
+            if "CUSTOMERS" in header:
                 mode = "customer"
                 continue
 
+            elif "PRODUCTS" in header:
+                mode = "product"
+                continue
+
+            # ✅ SKIP COLUMN HEADERS
+            if row[0].lower() in ["name", "invoice id"]:
+                continue
+
             try:
+                # ✅ INSERT PRODUCT
                 if mode == "product":
                     Product.objects.create(
                         user=request.user,
@@ -473,6 +481,7 @@ def import_backup(request):
                         quantity=int(row[2])
                     )
 
+                # ✅ INSERT CUSTOMER
                 elif mode == "customer":
                     Customer.objects.create(
                         user=request.user,
@@ -481,28 +490,101 @@ def import_backup(request):
                         phone=row[2],
                         address=row[3]
                     )
-            except:
-                pass  # Skip invalid rows
+
+            except Exception as e:
+                print("Error:", e)  # Debug
 
         return redirect('/dashboard/')
 
     return render(request, 'core/import_backup.html')
+import csv
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import Customer, Product, Invoice, InvoiceItem
 
-
-# ================= BILLING REPORT =================
 
 @login_required
-def billing_report(request):
+def export_backup(request):
 
-    invoices = Invoice.objects.filter(user=request.user)
+    if request.method == "POST":
+        backup_type = request.POST.get('backup_type')
 
-    # Calculate total revenue using aggregation
-    total_revenue = invoices.aggregate(
-        Sum('total_amount')
-    )['total_amount__sum'] or 0
+        if not backup_type:
+            return render(request, 'core/export_backup.html', {
+                'error': 'Please select backup type'
+            })
 
-    return render(request, 'core/billing_report.html', {
-        'total_revenue': total_revenue,
-        'total_invoices': invoices.count(),
-        'invoices': invoices
-    })
+        response = HttpResponse(content_type='text/csv')
+
+        writer = csv.writer(response)
+
+        # 🔹 CUSTOMER BACKUP
+        if backup_type == "customer":
+            response['Content-Disposition'] = 'attachment; filename="customers.csv"'
+
+            writer.writerow(['CUSTOMERS'])
+            writer.writerow(['Name', 'Email', 'Phone', 'Address'])
+
+            for c in Customer.objects.filter(user=request.user):
+                writer.writerow([c.name, c.email, c.phone, c.address])
+
+        # 🔹 PRODUCT BACKUP
+        elif backup_type == "product":
+            response['Content-Disposition'] = 'attachment; filename="products.csv"'
+
+            writer.writerow(['PRODUCTS'])
+            writer.writerow(['Name', 'Price', 'Quantity'])
+
+            for p in Product.objects.filter(user=request.user):
+                writer.writerow([p.name, p.price, p.quantity])
+
+        # 🔹 INVOICE BACKUP
+        elif backup_type == "invoice":
+            response['Content-Disposition'] = 'attachment; filename="invoices.csv"'
+
+            writer.writerow(['INVOICES'])
+            writer.writerow(['InvoiceID', 'Customer', 'Total', 'Date'])
+
+            for i in Invoice.objects.filter(user=request.user):
+                writer.writerow([i.id, i.customer.name, i.total_amount, i.created_at])
+
+        # 🔹 FULL BACKUP (BEST 🔥)
+        elif backup_type == "full":
+            response['Content-Disposition'] = 'attachment; filename="full_backup.csv"'
+
+            # ===== CUSTOMERS =====
+            writer.writerow(['CUSTOMERS'])
+            writer.writerow(['Name', 'Email', 'Phone', 'Address'])
+
+            for c in Customer.objects.filter(user=request.user):
+                writer.writerow([c.name, c.email, c.phone, c.address])
+
+            writer.writerow([])
+
+            # ===== PRODUCTS =====
+            writer.writerow(['PRODUCTS'])
+            writer.writerow(['Name', 'Price', 'Quantity'])
+
+            for p in Product.objects.filter(user=request.user):
+                writer.writerow([p.name, p.price, p.quantity])
+
+            writer.writerow([])
+
+            # ===== INVOICES =====
+            writer.writerow(['INVOICES'])
+            writer.writerow(['InvoiceID', 'Customer', 'Total', 'Date'])
+
+            for i in Invoice.objects.filter(user=request.user):
+                writer.writerow([i.id, i.customer.name, i.total_amount, i.created_at])
+
+        return response
+
+    return render(request, 'core/export_backup.html')
+
+
+
+
+
+
+
