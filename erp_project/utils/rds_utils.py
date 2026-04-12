@@ -25,12 +25,13 @@ HOW TO USE in views.py (health check):
 import os
 import logging
 
-logger = logging.getLogger('core')
+logger = logging.getLogger("core")
 
 
 # ==================================================================
 # FUNCTION 1 — Build the Django DATABASES config from env vars
 # ==================================================================
+
 
 def get_rds_settings():
     """
@@ -48,34 +49,36 @@ def get_rds_settings():
         from utils.rds_utils import get_rds_settings
         DATABASES = { 'default': get_rds_settings() }
     """
-    db_host = os.environ.get('DB_HOST', '')
+    db_host = os.environ.get("DB_HOST", "")
 
     if db_host:
         logger.info(f"[RDS] Connecting to PostgreSQL at {db_host}")
         return {
-            'ENGINE':   'django.db.backends.postgresql',
-            'NAME':     os.environ.get('DB_NAME', 'erp_db'),
-            'USER':     os.environ.get('DB_USER', 'erpuser'),
-            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-            'HOST':     db_host,
-            'PORT':     os.environ.get('DB_PORT', '5432'),
-            'OPTIONS': {
-                'connect_timeout': 10,
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DB_NAME", "erp_db"),
+            "USER": os.environ.get("DB_USER", "erpuser"),
+            "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+            "HOST": db_host,
+            "PORT": os.environ.get("DB_PORT", "5432"),
+            "OPTIONS": {
+                "connect_timeout": 10,
             },
         }
     else:
         logger.info("[RDS] DB_HOST not set — using local SQLite fallback")
         from pathlib import Path
+
         BASE_DIR = Path(__file__).resolve().parent.parent
         return {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME':   BASE_DIR / 'db.sqlite3',
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
 
 
 # ==================================================================
 # CLASS 1 — Health Check
 # ==================================================================
+
 
 class RDSHealthCheck:
     """
@@ -112,30 +115,31 @@ class RDSHealthCheck:
         """
         from django.db import connection, OperationalError
 
-        host = os.environ.get('DB_HOST', 'localhost (SQLite)')
+        host = os.environ.get("DB_HOST", "localhost (SQLite)")
 
         try:
             with connection.cursor() as cursor:
                 cursor.execute("SELECT 1")
             logger.info("[RDS] Health check passed")
             return {
-                'status':  'ok',
-                'host':    host,
-                'message': 'Database connection successful',
+                "status": "ok",
+                "host": host,
+                "message": "Database connection successful",
             }
 
         except OperationalError as e:
             logger.error(f"[RDS] Health check FAILED: {e}")
             return {
-                'status':  'error',
-                'host':    host,
-                'message': str(e),
+                "status": "error",
+                "host": host,
+                "message": str(e),
             }
 
 
 # ==================================================================
 # CLASS 2 — Live Statistics
 # ==================================================================
+
 
 class RDSStats:
     """
@@ -187,15 +191,15 @@ class RDSStats:
         from django.db.models import Sum
 
         try:
-            filters = {'user': user} if user else {}
+            filters = {"user": user} if user else {}
 
-            total_products  = Product.objects.filter(**filters).count()
+            total_products = Product.objects.filter(**filters).count()
             total_customers = Customer.objects.filter(**filters).count()
-            total_invoices  = Invoice.objects.filter(**filters).count()
-            revenue_result  = Invoice.objects.filter(**filters).aggregate(
-                                  total=Sum('total_amount')
-                              )
-            total_revenue   = round(revenue_result['total'] or 0.0, 2)
+            total_invoices = Invoice.objects.filter(**filters).count()
+            revenue_result = Invoice.objects.filter(**filters).aggregate(
+                total=Sum("total_amount")
+            )
+            total_revenue = round(revenue_result["total"] or 0.0, 2)
 
             logger.info(
                 f"[RDS] Stats for user='{getattr(user, 'username', 'all')}': "
@@ -204,17 +208,17 @@ class RDSStats:
             )
 
             return {
-                'total_products':  total_products,
-                'total_customers': total_customers,
-                'total_invoices':  total_invoices,
-                'total_revenue':   total_revenue,
+                "total_products": total_products,
+                "total_customers": total_customers,
+                "total_invoices": total_invoices,
+                "total_revenue": total_revenue,
             }
 
         except Exception as e:
             logger.error(f"[RDS] get_summary failed: {e}")
             return {
-                'total_products':  0,
-                'total_customers': 0,
-                'total_invoices':  0,
-                'total_revenue':   0.0,
+                "total_products": 0,
+                "total_customers": 0,
+                "total_invoices": 0,
+                "total_revenue": 0.0,
             }

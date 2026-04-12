@@ -25,36 +25,39 @@ HOW TO USE in views.py (credential check):
 
 import os
 import logging
+import boto3
+from django.conf import settings
 
-logger = logging.getLogger('core')
+logger = logging.getLogger("core")
 
 # All environment variables the ERP app requires to run on AWS
 REQUIRED_ENV_VARS = [
-    'DB_HOST',
-    'DB_NAME',
-    'DB_USER',
-    'DB_PASSWORD',
-    'AWS_ACCESS_KEY_ID',
-    'AWS_SECRET_ACCESS_KEY',
-    'SECRET_KEY',
+    "DB_HOST",
+    "DB_NAME",
+    "DB_USER",
+    "DB_PASSWORD",
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "SECRET_KEY",
 ]
 
 # S3 + CloudWatch actions the EC2 role (erp-ec2-role) must have
 REQUIRED_AWS_ACTIONS = [
-    's3:PutObject',
-    's3:GetObject',
-    's3:ListBucket',
-    's3:DeleteObject',
-    'logs:CreateLogGroup',
-    'logs:CreateLogStream',
-    'logs:PutLogEvents',
-    'cloudwatch:PutMetricData',
+    "s3:PutObject",
+    "s3:GetObject",
+    "s3:ListBucket",
+    "s3:DeleteObject",
+    "logs:CreateLogGroup",
+    "logs:CreateLogStream",
+    "logs:PutLogEvents",
+    "cloudwatch:PutMetricData",
 ]
 
 
 # ==================================================================
 # CLASS 1 — Secure Config Loader
 # ==================================================================
+
 
 class SecureConfig:
     """
@@ -133,16 +136,16 @@ class SecureConfig:
         if missing:
             logger.warning(f"[IAM] Missing env vars: {missing}")
             return {
-                'status':  'missing',
-                'missing': missing,
-                'message': f"Missing environment variables: {', '.join(missing)}",
+                "status": "missing",
+                "missing": missing,
+                "message": f"Missing environment variables: {', '.join(missing)}",
             }
 
         logger.info("[IAM] All required environment variables are present")
         return {
-            'status':  'ok',
-            'missing': [],
-            'message': 'All required environment variables are present',
+            "status": "ok",
+            "missing": [],
+            "message": "All required environment variables are present",
         }
 
     @staticmethod
@@ -164,18 +167,19 @@ class SecureConfig:
             # {'AWS_ACCESS_KEY_ID': 'AKIAIOSFODNN7EXAMPLE',
             #  'AWS_SECRET_ACCESS_KEY': '***masked***', ...}
         """
-        secret = os.environ.get('AWS_SECRET_ACCESS_KEY')
+        secret = os.environ.get("AWS_SECRET_ACCESS_KEY")
         return {
-            'AWS_ACCESS_KEY_ID':       os.environ.get('AWS_ACCESS_KEY_ID'),
-            'AWS_SECRET_ACCESS_KEY':   '***masked***' if secret else None,
-            'AWS_STORAGE_BUCKET_NAME': os.environ.get('AWS_STORAGE_BUCKET_NAME'),
-            'AWS_S3_REGION_NAME':      os.environ.get('AWS_S3_REGION_NAME', 'eu-north-1'),
+            "AWS_ACCESS_KEY_ID": os.environ.get("AWS_ACCESS_KEY_ID"),
+            "AWS_SECRET_ACCESS_KEY": "***masked***" if secret else None,
+            "AWS_STORAGE_BUCKET_NAME": os.environ.get("AWS_STORAGE_BUCKET_NAME"),
+            "AWS_S3_REGION_NAME": os.environ.get("AWS_S3_REGION_NAME", "eu-north-1"),
         }
 
 
 # ==================================================================
 # CLASS 2 — Credential Validator
 # ==================================================================
+
 
 class IAMCredentialCheck:
     """
@@ -202,12 +206,11 @@ class IAMCredentialCheck:
     """
 
     def __init__(self):
-        from django.conf import settings
-        self.client = boto3.client(
-            'sts',
-            aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID', None),
-            aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
-            region_name=getattr(settings, 'AWS_S3_REGION_NAME', 'eu-north-1'),
+        self.client = boto3.client(  # type: ignore
+            "sts",
+            aws_access_key_id=getattr(settings, "AWS_ACCESS_KEY_ID", None),
+            aws_secret_access_key=getattr(settings, "AWS_SECRET_ACCESS_KEY", None),
+            region_name=getattr(settings, "AWS_S3_REGION_NAME", "eu-north-1"),
         )
 
     def verify(self):
@@ -230,32 +233,32 @@ class IAMCredentialCheck:
             }
         """
         try:
-            import boto3
             response = self.client.get_caller_identity()
-            arn      = response.get('Arn', 'unknown')
-            account  = response.get('Account', 'unknown')
+            arn = response.get("Arn", "unknown")
+            account = response.get("Account", "unknown")
 
             logger.info(f"[IAM] Credential check OK — identity: {arn}")
             return {
-                'status':   'ok',
-                'identity': arn,
-                'account':  account,
-                'message':  'AWS credentials are valid',
+                "status": "ok",
+                "identity": arn,
+                "account": account,
+                "message": "AWS credentials are valid",
             }
 
         except Exception as e:
             logger.error(f"[IAM] Credential check FAILED: {e}")
             return {
-                'status':   'error',
-                'identity': None,
-                'account':  None,
-                'message':  str(e),
+                "status": "error",
+                "identity": None,
+                "account": None,
+                "message": str(e),
             }
 
 
 # ==================================================================
 # CLASS 3 — Permission Audit
 # ==================================================================
+
 
 class IAMPermissionAudit:
     """
@@ -300,39 +303,39 @@ class IAMPermissionAudit:
         import boto3
         from django.conf import settings
 
-        results = {action: 'unknown' for action in REQUIRED_AWS_ACTIONS}
+        results = {action: "unknown" for action in REQUIRED_AWS_ACTIONS}
 
         try:
             iam = boto3.client(
-                'iam',
-                aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID', None),
-                aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
-                region_name=getattr(settings, 'AWS_S3_REGION_NAME', 'eu-north-1'),
+                "iam",
+                aws_access_key_id=getattr(settings, "AWS_ACCESS_KEY_ID", None),
+                aws_secret_access_key=getattr(settings, "AWS_SECRET_ACCESS_KEY", None),
+                region_name=getattr(settings, "AWS_S3_REGION_NAME", "eu-north-1"),
             )
             sts = boto3.client(
-                'sts',
-                aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID', None),
-                aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
-                region_name=getattr(settings, 'AWS_S3_REGION_NAME', 'eu-north-1'),
+                "sts",
+                aws_access_key_id=getattr(settings, "AWS_ACCESS_KEY_ID", None),
+                aws_secret_access_key=getattr(settings, "AWS_SECRET_ACCESS_KEY", None),
+                region_name=getattr(settings, "AWS_S3_REGION_NAME", "eu-north-1"),
             )
 
-            caller_arn = sts.get_caller_identity()['Arn']
-            bucket     = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '*')
+            caller_arn = sts.get_caller_identity()["Arn"]
+            bucket = getattr(settings, "AWS_STORAGE_BUCKET_NAME", "*")
 
             simulation = iam.simulate_principal_policy(
                 PolicySourceArn=caller_arn,
                 ActionNames=REQUIRED_AWS_ACTIONS,
-                ResourceArns=[f'arn:aws:s3:::{bucket}/*', '*'],
+                ResourceArns=[f"arn:aws:s3:::{bucket}/*", "*"],
             )
 
-            for eval_result in simulation.get('EvaluationResults', []):
-                action   = eval_result['EvalActionName']
-                decision = eval_result['EvalDecision']
-                results[action] = 'allowed' if decision == 'allowed' else 'denied'
+            for eval_result in simulation.get("EvaluationResults", []):
+                action = eval_result["EvalActionName"]
+                decision = eval_result["EvalDecision"]
+                results[action] = "allowed" if decision == "allowed" else "denied"
                 logger.info(f"[IAM] Permission check: {action} → {results[action]}")
 
         except Exception as e:
             logger.warning(f"[IAM] Permission simulation failed: {e}")
-            results = {action: 'error' for action in REQUIRED_AWS_ACTIONS}
+            results = {action: "error" for action in REQUIRED_AWS_ACTIONS}
 
         return results

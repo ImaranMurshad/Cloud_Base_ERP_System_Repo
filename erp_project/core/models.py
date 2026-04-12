@@ -1,5 +1,6 @@
-from django.contrib.auth.models import User
 from django.db import models
+from django.contrib.auth.models import User
+
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -10,9 +11,6 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username
-    
-from django.db import models
-from django.contrib.auth.models import User
 
 
 class Product(models.Model):
@@ -24,7 +22,8 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
-    
+
+
 class Customer(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
@@ -35,7 +34,8 @@ class Customer(models.Model):
 
     def __str__(self):
         return self.name
-    
+
+
 class Invoice(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
@@ -51,3 +51,6 @@ class InvoiceItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     price = models.FloatField()
+
+    def __str__(self):
+        return f"{self.product.name} - {self.quantity}"

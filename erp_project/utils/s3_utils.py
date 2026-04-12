@@ -24,7 +24,7 @@ import logging
 from datetime import date
 from django.conf import settings
 
-logger = logging.getLogger('core')
+logger = logging.getLogger("core")
 
 
 class S3Manager:
@@ -45,7 +45,7 @@ class S3Manager:
     def __init__(self):
         # Uses env vars already set in your settings.py
         self.client = boto3.client(
-            's3',
+            "s3",
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
             region_name=settings.AWS_S3_REGION_NAME,
@@ -55,7 +55,7 @@ class S3Manager:
     # -------------------------------------------------------
     # PRIVATE: core upload helper used by all public methods
     # -------------------------------------------------------
-    def _upload(self, key, content, content_type='text/csv'):
+    def _upload(self, key, content, content_type="text/csv"):
         """
         Upload raw bytes to S3 under the given key.
 
@@ -69,7 +69,7 @@ class S3Manager:
             None  – if any error occurred (error is logged, app does NOT crash)
         """
         if isinstance(content, str):
-            content = content.encode('utf-8')
+            content = content.encode("utf-8")
 
         try:
             self.client.put_object(
@@ -170,22 +170,23 @@ class S3Manager:
         """
         try:
             response = self.client.list_objects_v2(
-                Bucket=self.bucket,
-                Prefix='backups/'
+                Bucket=self.bucket, Prefix="backups/"
             )
             files = []
-            for obj in response.get('Contents', []):
-                key = obj['Key']
-                if key == 'backups/':   # skip the folder entry itself
+            for obj in response.get("Contents", []):
+                key = obj["Key"]
+                if key == "backups/":  # skip the folder entry itself
                     continue
                 if username and username not in key:
-                    continue            # filter by user
-                files.append({
-                    'key':           key,
-                    'filename':      key.split('/')[-1],
-                    'size_kb':       round(obj['Size'] / 1024, 1),
-                    'last_modified': obj['LastModified'],
-                })
+                    continue  # filter by user
+                files.append(
+                    {
+                        "key": key,
+                        "filename": key.split("/")[-1],
+                        "size_kb": round(obj["Size"] / 1024, 1),
+                        "last_modified": obj["LastModified"],
+                    }
+                )
             logger.info(f"[S3] Listed {len(files)} backups for user '{username}'")
             return files
 
@@ -216,11 +217,13 @@ class S3Manager:
         """
         try:
             url = self.client.generate_presigned_url(
-                'get_object',
-                Params={'Bucket': self.bucket, 'Key': s3_key},
+                "get_object",
+                Params={"Bucket": self.bucket, "Key": s3_key},
                 ExpiresIn=expiry,
             )
-            logger.info(f"[S3] Pre-signed URL created for '{s3_key}' (expires in {expiry}s)")
+            logger.info(
+                f"[S3] Pre-signed URL created for '{s3_key}' (expires in {expiry}s)"
+            )
             return url
 
         except Exception as e:

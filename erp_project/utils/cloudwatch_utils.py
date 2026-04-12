@@ -30,21 +30,22 @@ import logging
 import time
 from django.conf import settings
 
-logger = logging.getLogger('core')
+logger = logging.getLogger("core")
 
 # CloudWatch Logs configuration — matches the log group
 # your CloudWatch Agent is already configured to use
-LOG_GROUP  = '/erp/django'
-LOG_STREAM = 'erp-app-events'
+LOG_GROUP = "/erp/django"
+LOG_STREAM = "erp-app-events"
 
 # CloudWatch Metrics namespace — shows as a custom namespace
 # in the AWS CloudWatch Metrics console
-METRICS_NAMESPACE = 'ERP/Application'
+METRICS_NAMESPACE = "ERP/Application"
 
 
 # ==================================================================
 # CLASS 1 — LOG EVENTS
 # ==================================================================
+
 
 class CloudWatchLogger:
     """
@@ -70,7 +71,7 @@ class CloudWatchLogger:
 
     def __init__(self):
         self.client = boto3.client(
-            'logs',
+            "logs",
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
             region_name=settings.AWS_S3_REGION_NAME,
@@ -84,14 +85,16 @@ class CloudWatchLogger:
         AWS raises ResourceAlreadyExistsException which we catch.
         """
         for create_fn, kwargs in [
-            (self.client.create_log_group,  {'logGroupName': LOG_GROUP}),
-            (self.client.create_log_stream, {'logGroupName': LOG_GROUP,
-                                             'logStreamName': LOG_STREAM}),
+            (self.client.create_log_group, {"logGroupName": LOG_GROUP}),
+            (
+                self.client.create_log_stream,
+                {"logGroupName": LOG_GROUP, "logStreamName": LOG_STREAM},
+            ),
         ]:
             try:
                 create_fn(**kwargs)
             except self.client.exceptions.ResourceAlreadyExistsException:
-                pass   # already exists — fine
+                pass  # already exists — fine
             except Exception as e:
                 logger.warning(f"[CloudWatch] Setup warning: {e}")
 
@@ -105,10 +108,12 @@ class CloudWatchLogger:
             self.client.put_log_events(
                 logGroupName=LOG_GROUP,
                 logStreamName=LOG_STREAM,
-                logEvents=[{
-                    'timestamp': int(time.time() * 1000),
-                    'message': message,
-                }]
+                logEvents=[
+                    {
+                        "timestamp": int(time.time() * 1000),
+                        "message": message,
+                    }
+                ],
             )
         except Exception as e:
             # Only warn — never block the request
@@ -218,6 +223,7 @@ class CloudWatchLogger:
 # CLASS 2 — CUSTOM METRICS
 # ==================================================================
 
+
 class CloudWatchMetrics:
     """
     Custom library to publish business metrics from your ERP app
@@ -245,13 +251,13 @@ class CloudWatchMetrics:
 
     def __init__(self):
         self.client = boto3.client(
-            'cloudwatch',
+            "cloudwatch",
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
             region_name=settings.AWS_S3_REGION_NAME,
         )
 
-    def _publish(self, metric_name, value, unit='Count'):
+    def _publish(self, metric_name, value, unit="Count"):
         """
         Internal: publish one metric data point to CloudWatch.
 
@@ -263,16 +269,20 @@ class CloudWatchMetrics:
         try:
             self.client.put_metric_data(
                 Namespace=METRICS_NAMESPACE,
-                MetricData=[{
-                    'MetricName': metric_name,
-                    'Value': value,
-                    'Unit': unit,
-                }]
+                MetricData=[
+                    {
+                        "MetricName": metric_name,
+                        "Value": value,
+                        "Unit": unit,
+                    }
+                ],
             )
             logger.info(f"[CloudWatch Metric] {metric_name} = {value} ({unit})")
 
         except Exception as e:
-            logger.warning(f"[CloudWatch Metric] Failed to publish '{metric_name}': {e}")
+            logger.warning(
+                f"[CloudWatch Metric] Failed to publish '{metric_name}': {e}"
+            )
 
     def record_invoice_created(self, total_amount):
         """
@@ -287,8 +297,8 @@ class CloudWatchMetrics:
             cwm = CloudWatchMetrics()
             cwm.record_invoice_created(total_amount=invoice.total_amount)
         """
-        self._publish('InvoicesCreated', 1, unit='Count')
-        self._publish('RevenueGenerated', total_amount, unit='None')
+        self._publish("InvoicesCreated", 1, unit="Count")
+        self._publish("RevenueGenerated", total_amount, unit="None")
 
     def record_backup_exported(self):
         """
@@ -298,7 +308,7 @@ class CloudWatchMetrics:
         Example:
             cwm.record_backup_exported()
         """
-        self._publish('BackupsExported', 1, unit='Count')
+        self._publish("BackupsExported", 1, unit="Count")
 
     def record_backup_imported(self):
         """
@@ -308,7 +318,7 @@ class CloudWatchMetrics:
         Example:
             cwm.record_backup_imported()
         """
-        self._publish('BackupsImported', 1, unit='Count')
+        self._publish("BackupsImported", 1, unit="Count")
 
     def record_product_added(self):
         """
@@ -318,7 +328,7 @@ class CloudWatchMetrics:
         Example:
             cwm.record_product_added()
         """
-        self._publish('ProductsAdded', 1, unit='Count')
+        self._publish("ProductsAdded", 1, unit="Count")
 
     def record_customer_added(self):
         """
@@ -328,4 +338,4 @@ class CloudWatchMetrics:
         Example:
             cwm.record_customer_added()
         """
-        self._publish('CustomersAdded', 1, unit='Count')
+        self._publish("CustomersAdded", 1, unit="Count")
