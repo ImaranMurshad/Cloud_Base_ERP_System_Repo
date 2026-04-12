@@ -1,0 +1,85 @@
+name: CI/CD Django App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  # 🔍 JOB 1: Code Quality + Security Checks
+  checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install flake8 pylint bandit pip-audit
+
+      - name: Run Flake8
+        run: flake8 .
+
+      - name: Run Pylint
+        run: pylint online_voting_system || true
+        # ⚠️ don't fail pipeline yet (optional)
+
+      - name: Run Bandit (Security Scan)
+        run: |
+          bandit -r . -x venv,env,__pycache__,migrations
+
+      - name: Run pip-audit (Dependency Scan)
+        run: pip-audit
+
+  # 🚀 JOB 2: Deploy (only if checks pass)
+  deploy:
+    needs: checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          
+          cd ${{ secrets.PROJECT_PATH }}
+
+          echo "📥 Pull latest code"
+          git pull origin main
+
+          echo "🐍 Activate venv"
+          source venv/bin/activate
+
+          echo "📦 Install dependencies"
+          pip install -r requirements.txt
+
+          echo "⚙️ Run migrations"
+          cd erp_project
+          python manage.py migrate
+
+          echo "📁 Collect static"
+          python manage.py collectstatic --noinput
+
+          echo "🔄 Restart Gunicorn"
+          sudo systemctl restart gunicorn
+
+          echo "🌐 Restart Nginx"
+          sudo systemctl restart nginx
+
+          echo "✅ Deployment done"
+          EOF
