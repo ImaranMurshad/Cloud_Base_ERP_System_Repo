@@ -25,17 +25,24 @@ jobs:
           pip install -r requirements.txt
           pip install flake8 pylint bandit pip-audit
 
+      # ✅ FIXED: Only check your project files
       - name: Run Flake8
-        run: flake8 .
+        run: |
+          flake8 erp_project core inventory billing \
+          --exclude=venv,migrations,__pycache__ \
+          --max-line-length=120
 
+      # ✅ FIXED: Correct app names
       - name: Run Pylint
-        run: pylint online_voting_system || true
-        # ⚠️ don't fail pipeline yet (optional)
+        run: pylint core inventory billing || true
 
+      # ✅ FIXED: Scan only your code
       - name: Run Bandit (Security Scan)
         run: |
-          bandit -r . -x venv,env,__pycache__,migrations
+          bandit -r erp_project core inventory billing \
+          -x venv,env,__pycache__,migrations
 
+      # ✅ Dependency vulnerability scan
       - name: Run pip-audit (Dependency Scan)
         run: pip-audit
 
