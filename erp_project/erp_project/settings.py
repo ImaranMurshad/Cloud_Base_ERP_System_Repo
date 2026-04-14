@@ -4,7 +4,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
-SECRET_KEY = "django-insecure-xkfi1eu&39_5v@=wnpmpm8@p0w%p!e^uum@%j81!ju%q+%8438"
+SECRET_KEY = os.environ.get("SECRET_KEY", "fallback-dev-key")
 DEBUG = False
 
 ALLOWED_HOSTS = [
