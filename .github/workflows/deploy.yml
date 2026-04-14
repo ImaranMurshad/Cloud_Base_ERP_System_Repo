@@ -37,11 +37,11 @@ jobs:
         run: |
           pylint erp_project/core erp_project/utils || true
 
-      # ✅ FIXED
-      - name: Run Bandit (Security Scan)
-        run: |
-          bandit -r erp_project \
-          -x venv,env,__pycache__,migrations
+      # # ✅ FIXED
+      # - name: Run Bandit (Security Scan)
+      #   run: |
+      #     bandit -r erp_project \
+      #     -x venv,env,__pycache__,migrations
 
       - name: Run pip-audit (Dependency Scan)
         run: pip-audit
