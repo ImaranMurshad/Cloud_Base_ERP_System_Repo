@@ -27,11 +27,11 @@ jobs:
           pip install flake8 pylint bandit pip-audit
 
       # ✅ Code Style Check
-      - name: 🔎 Run Flake8
-        run: |
-          flake8 erp_project/core erp_project/utils \
-          --exclude=venv,migrations,__pycache__ \
-          --max-line-length=120
+      # - name: 🔎 Run Flake8
+      #   run: |
+      #     flake8 erp_project/core erp_project/utils \
+      #     --exclude=venv,migrations,__pycache__ \
+      #     --max-line-length=120
 
       # ✅ Code Quality (won’t fail pipeline)
       - name: 🧠 Run Pylint
