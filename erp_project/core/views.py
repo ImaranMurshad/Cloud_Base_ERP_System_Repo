@@ -50,67 +50,53 @@ def contact(request):
     return render(request, "core/contact.html")
 
 
-# # ================= REGISTER =================
+# ================= REGISTER =================
 
 
-# def register(request):
-#     if request.method == "POST":
-#         full_name = request.POST.get("full_name")
-#         email = request.POST.get("email")
-#         username = request.POST.get("username")
-#         password = request.POST.get("password")
-#         confirm_password = request.POST.get("confirm_password")
-#         question = request.POST.get("question")
-#         answer = request.POST.get("answer")
-
-#         if not all(
-#             [full_name, email, username, password, confirm_password, question, answer]
-#         ):
-#             return render(
-#                 request, "core/register.html", {"error": "All fields are required"}
-#             )
-#         if password != confirm_password:
-#             return render(
-#                 request, "core/register.html", {"error": "Passwords do not match"}
-#             )
-#         if User.objects.filter(username=username).exists():
-#             return render(
-#                 request, "core/register.html", {"error": "Username already exists"}
-#             )
-#         if User.objects.filter(email=email).exists():
-#             return render(
-#                 request, "core/register.html", {"error": "Email already registered"}
-#             )
-
-#         user = User.objects.create_user(
-#             username=username, password=password, email=email
-#         )
-#         UserProfile.objects.create(
-#             user=user,
-#             full_name=full_name,
-#             email=email,
-#             security_question=question,
-#             security_answer=answer,
-#         )
-#         return redirect("/login/")
-
-#     return render(request, "core/register.html")
-
-
-
-from django.shortcuts import render, redirect
-from .services import register_user
-
-def register_view(request):
+def register(request):
     if request.method == "POST":
-        result = register_user(request.POST)
+        full_name = request.POST.get("full_name")
+        email = request.POST.get("email")
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        confirm_password = request.POST.get("confirm_password")
+        question = request.POST.get("question")
+        answer = request.POST.get("answer")
 
-        if "error" in result:
-            return render(request, "register.html", result)
+        if not all(
+            [full_name, email, username, password, confirm_password, question, answer]
+        ):
+            return render(
+                request, "core/register.html", {"error": "All fields are required"}
+            )
+        if password != confirm_password:
+            return render(
+                request, "core/register.html", {"error": "Passwords do not match"}
+            )
+        if User.objects.filter(username=username).exists():
+            return render(
+                request, "core/register.html", {"error": "Username already exists"}
+            )
+        if User.objects.filter(email=email).exists():
+            return render(
+                request, "core/register.html", {"error": "Email already registered"}
+            )
 
+        user = User.objects.create_user(
+            username=username, password=password, email=email
+        )
+        UserProfile.objects.create(
+            user=user,
+            full_name=full_name,
+            email=email,
+            security_question=question,
+            security_answer=answer,
+        )
         return redirect("/login/")
 
-    return render(request, "register.html")
+    return render(request, "core/register.html")
+
+
 # ================= LOGIN =================
 
 
